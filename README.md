@@ -8,6 +8,7 @@ I don't come from a traditional developer background. I come from the front line
 
 | Project | What it is | Built with |
 |---|---|---|
+| **[Catch](https://larose23.github.io/larose23/catch/)** · [49-sec walkthrough](https://larose23.github.io/larose23/catch/walkthrough.mp4) | Memory app I use every day. It catches what I'd forget, then trains me to remember: I recall my day before it shows me, I see how the agent read each note, and a task pushed three times gets stopped and questioned | Designed and directed with Claude · HTML, CSS, JavaScript, Google Calendar |
 | **[SmartMedi AI](https://github.com/larose23/smartmedi-ai-mvp)** · [live demo](https://smartmedi-ai-mvp.vercel.app) | Clinic check-in with automated triage scoring and a live staff dashboard | Next.js, Supabase, TypeScript, OpenAI |
 | **[LegalMind AI](https://github.com/larose23/legalmindai)** | AI legal assistant: document analysis, summaries, research grounded in a legal knowledge base, drafting | Python, Flask, GPT-4, ChromaDB |
 | **[AI Job Agent](https://github.com/larose23/ai-job-agent)** | Finds jobs, tailors a resume and cover letter to each posting, and tracks every application | Python, GPT-4, Playwright, Google Sheets API |
