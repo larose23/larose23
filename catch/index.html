@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Catch: a memory app that makes you better at remembering. Concept prototype by Zak Mahadalle.">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
+<title>Catch, Remember Better</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&display=swap">
+<style>
+/* Layout: a single phone-width app, framed like a device on wide screens, with the designer's margin notes woven into each screen. */
+:root{
+  --bg:#E4E9F1; --frame:#F6F8FB; --surface:#FFFFFF; --ink:#18202E; --muted:#596476; --line:#D3D9E3;
+  --task:#2F5BEA; --task-bg:#E3EAFE;
+  --appt:#1C7F60; --appt-bg:#DDF2EA;
+  --idea:#8A6A00; --idea-dot:#D9B21F; --idea-bg:#FBF3CF;
+  --late:#C0352B; --late-bg:#FBE4E1;
+  --got:#1C7F60; --got-bg:#DDF2EA;
+  --note:#6B4FD8; --note-bg:#EFEBFD;
+  --btn:#18202E; --btn-ink:#FFFFFF;
+  --shadow:0 30px 60px -30px rgba(24,32,46,.35), 0 2px 6px rgba(24,32,46,.08);
+  --display:"Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0C1017; --frame:#121823; --surface:#1A2230; --ink:#E9EDF4; --muted:#9AA5B6; --line:#2B3546;
+  --task:#8AA6FF; --task-bg:#1E2A4D; --appt:#5ED0A6; --appt-bg:#143628;
+  --idea:#F0CF5A; --idea-dot:#E2BE38; --idea-bg:#3A3112; --late:#FF8A7E; --late-bg:#45201C;
+  --got:#5ED0A6; --got-bg:#143628; --note:#B5A3FF; --note-bg:#262043;
+  --btn:#E9EDF4; --btn-ink:#121823; --shadow:0 30px 60px -30px rgba(0,0,0,.7); color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0C1017; --frame:#121823; --surface:#1A2230; --ink:#E9EDF4; --muted:#9AA5B6; --line:#2B3546;
+  --task:#8AA6FF; --task-bg:#1E2A4D; --appt:#5ED0A6; --appt-bg:#143628;
+  --idea:#F0CF5A; --idea-dot:#E2BE38; --idea-bg:#3A3112; --late:#FF8A7E; --late-bg:#45201C;
+  --got:#5ED0A6; --got-bg:#143628; --note:#B5A3FF; --note-bg:#262043;
+  --btn:#E9EDF4; --btn-ink:#121823; --shadow:0 30px 60px -30px rgba(0,0,0,.7); color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 var(--body);
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:28px 40px}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--task);outline-offset:2px;border-radius:6px}
+
+.intro{max-width:880px;margin:0 auto 26px;display:flex;flex-wrap:wrap;gap:12px 28px;align-items:end;justify-content:space-between}
+.intro h1{font:800 clamp(34px,6vw,52px)/1 var(--display);letter-spacing:-.025em;margin:0;text-wrap:balance}
+.intro h1 span{color:var(--muted);font-weight:500}
+.intro p{margin:8px 0 0;color:var(--muted);max-width:52ch}
+.toggle{display:inline-flex;align-items:center;gap:10px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px 8px 10px;font-size:14px}
+.toggle i{width:34px;height:20px;border-radius:999px;background:var(--line);position:relative;transition:background .2s}
+.toggle i::after{content:"";position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:var(--surface);transition:transform .2s}
+.toggle[aria-pressed="true"] i{background:var(--note)}
+.toggle[aria-pressed="true"] i::after{transform:translateX(14px)}
+
+.device{max-width:420px;margin:0 auto;background:var(--frame);border-radius:34px;box-shadow:var(--shadow);border:1px solid var(--line);overflow:hidden;display:flex;flex-direction:column;min-height:720px}
+@media (max-width:480px){ .device{border-radius:24px;min-height:0} }
+.app-head{padding:18px 20px 6px;display:flex;justify-content:space-between;align-items:baseline}
+.brand{font:800 22px/1 var(--display);letter-spacing:-.02em}
+.brand b{color:var(--task)}
+.date{color:var(--muted);font-size:14px;font-variant-numeric:tabular-nums}
+.screen{flex:1;padding:8px 20px 24px;display:flex;flex-direction:column;gap:16px}
+
+.note{border:1.5px dashed var(--note);background:var(--note-bg);border-radius:var(--r);padding:12px 14px;font-size:14px;line-height:1.45}
+.note strong{display:block;font:700 12px/1.2 var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--note);margin-bottom:4px}
+body.nonotes .note{display:none}
+
+h2{font:700 26px/1.12 var(--display);letter-spacing:-.02em;margin:0;text-wrap:balance}
+.sub{color:var(--muted);margin:-8px 0 0;font-size:15px}
+.label{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.field{display:flex;gap:8px}
+.field input,textarea{flex:1;min-width:0;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:12px 14px}
+textarea{width:100%;resize:vertical;min-height:110px;line-height:1.45}
+.btn{border:0;background:var(--btn);color:var(--btn-ink);border-radius:12px;padding:12px 16px;font-weight:700;white-space:nowrap}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.wide{width:100%;padding:14px}
+.linkish{background:none;border:0;color:var(--muted);text-decoration:underline;text-underline-offset:3px;padding:4px 0;font-size:14px;align-self:center}
+.chips{display:flex;flex-wrap:wrap;gap:8px;min-height:10px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 8px 6px 12px;font-size:15px}
+.chip button{border:0;background:none;color:var(--muted);padding:0 4px;font-size:16px;line-height:1}
+
+.score{display:flex;align-items:baseline;gap:12px}
+.score b{font:800 64px/.9 var(--display);letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.score span{color:var(--muted);font-size:15px;max-width:22ch}
+
+ul.items{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.item{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:start}
+.anim .item,.anim .read{animation:rise .45s both}
+.item .dot{width:10px;height:10px;border-radius:50%;margin-top:7px}
+.dot.task{background:var(--task)} .dot.appointment{background:var(--appt)} .dot.idea{background:var(--idea-dot)}
+.item .t{font-weight:700;min-width:0}
+.item .meta{grid-column:2;display:flex;flex-wrap:wrap;gap:6px 10px;font-size:13px;color:var(--muted);align-items:center}
+.tag{display:inline-block;border-radius:6px;padding:2px 7px;font-size:12px;font-weight:700}
+.tag.got{background:var(--got-bg);color:var(--got)}
+.tag.miss{background:var(--late-bg);color:var(--late)}
+.tag.push{background:var(--late-bg);color:var(--late)}
+.tag.step{background:var(--task-bg);color:var(--task)}
+.tag.timer{background:var(--note-bg);color:var(--note);font-variant-numeric:tabular-nums}
+.item.got{border-color:color-mix(in srgb,var(--got) 45%,var(--line))}
+.actions{grid-column:2;display:flex;gap:8px;margin-top:6px}
+.actions button{border:1px solid var(--line);background:transparent;border-radius:9px;padding:6px 12px;font-size:14px;font-weight:700}
+.actions button.done{border-color:var(--ink)}
+.moved{font-size:14px;color:var(--muted)}
+@keyframes rise{from{opacity:.0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.reading{display:flex;flex-direction:column;gap:10px}
+.read{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.read .row{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.typebtn{border:0;border-radius:999px;padding:5px 12px;font-size:13px;font-weight:700;display:inline-flex;gap:6px;align-items:center}
+.typebtn.task{background:var(--task-bg);color:var(--task)}
+.typebtn.appointment{background:var(--appt-bg);color:var(--appt)}
+.typebtn.idea{background:var(--idea-bg);color:var(--idea)}
+.typebtn::after{content:"↻";font-weight:400;opacity:.7}
+.why{font-size:13px;color:var(--muted)}
+.why mark{background:var(--idea-bg);color:var(--ink);border-radius:3px;padding:0 2px}
+.fixed{font-size:12px;font-weight:700;color:var(--note)}
+
+.idea{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.idea .top{display:flex;gap:12px;align-items:start}
+.idea .top .dot{width:10px;height:10px;border-radius:50%;margin-top:7px;flex:none}
+.idea .t{font-weight:700;flex:1;min-width:0}
+.idea .age{font-size:13px;color:var(--muted)}
+.seg{display:flex;gap:6px}
+.seg button{flex:1;border:1px solid var(--line);background:transparent;border-radius:10px;padding:8px 4px;font-size:14px;font-weight:700}
+.seg button[aria-pressed="true"]{background:var(--btn);color:var(--btn-ink);border-color:var(--btn)}
+.verdict{font-size:14px;color:var(--muted)} .verdict b{color:var(--ink)}
+
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px}
+.stat b{display:block;font:800 30px/1 var(--display);font-variant-numeric:tabular-nums}
+.stat span{font-size:13px;color:var(--muted)}
+.chart{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.chart svg{display:block;width:100%;height:auto}
+.mirror{display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
+.mirror li{padding-left:14px;border-left:3px solid var(--line);font-size:15px}
+
+nav.tabs{position:sticky;bottom:0;display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line);background:var(--frame);padding:6px 8px calc(8px + env(safe-area-inset-bottom,0px))}
+nav.tabs button{border:0;background:none;padding:8px 2px;border-radius:10px;font-size:13px;font-weight:700;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:4px}
+nav.tabs button svg{width:22px;height:22px}
+nav.tabs button[aria-selected="true"]{color:var(--ink);background:var(--surface)}
+nav.tabs .badge{position:relative}
+nav.tabs .badge::after{content:attr(data-n);position:absolute;top:-6px;right:-12px;background:var(--idea-dot);color:#18202E;border-radius:999px;font-size:11px;padding:0 5px;line-height:16px}
+
+.sheet-wrap{position:fixed;inset:0;background:rgba(12,16,23,.45);display:flex;align-items:flex-end;justify-content:center;z-index:20;padding:0 max(0px, env(safe-area-inset-right,0px)) 0 max(0px, env(safe-area-inset-left,0px))}
+.sheet{background:var(--frame);width:100%;max-width:420px;border-radius:24px 24px 0 0;padding:22px 20px calc(22px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px;animation:up .3s both;max-height:92vh;overflow:auto}
+@keyframes up{from{transform:translateY(30px);opacity:0}to{transform:none;opacity:1}}
+.opt{width:100%;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:2px}
+.opt b{font-size:16px} .opt span{color:var(--muted);font-size:14px}
+.opt[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--btn);color:var(--btn-ink);padding:10px 16px;border-radius:12px;font-size:14px;z-index:30;max-width:calc(100% - 32px);text-align:center;animation:rise .25s both}
+.foot{max-width:880px;margin:22px auto 0;color:var(--muted);font-size:13px;text-align:center}
+@media (prefers-reduced-motion:reduce){ *{animation:none!important;transition:none!important} }
+</style>
+
+</head><body>
+<header class="intro">
+  <div>
+    <h1>Catch <span>remember better</span></h1>
+    <p>A memory app that catches what you'd forget, then gives you back the work of remembering. Concept prototype by Zak Mahadalle, redesigning the version he uses every day.</p>
+  </div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <a class="toggle" href="walkthrough.mp4" style="text-decoration:none;color:inherit"><b style="color:var(--task)">▶</b>Watch the 49-second walkthrough</a>
+    <button class="toggle" id="notesToggle" aria-pressed="true"><i></i>Design notes</button>
+  </div>
+</header>
+
+<div class="device">
+  <div class="app-head"><span class="brand">Catch<b>.</b></span><span class="date" id="todayLabel"></span></div>
+  <main class="screen" id="screen" aria-live="polite"></main>
+  <nav class="tabs" role="tablist" id="tabs"></nav>
+</div>
+<p class="foot">Example data. Nothing you type here is saved or sent anywhere. Designed and built with Claude by Zak Mahadalle · <a href="https://github.com/larose23" style="color:inherit">github.com/larose23</a></p>
+<div id="layer"></div>
+
+<script>
+(function(){
+"use strict";
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const today=new Date();
+const fmt=(d,o)=>d.toLocaleDateString("en-CA",o);
+$("#todayLabel").textContent=fmt(today,{weekday:"short",month:"short",day:"numeric"});
+
+const S={
+  tab:"today", gate:"ask", recall:[], result:null, skipped:false,
+  items:[
+    {id:1,type:"appointment",title:"Dentist",time:"2:00 PM",keys:["dentist","dental","teeth","cleaning"]},
+    {id:2,type:"task",title:"Call the landlord about the leak",keys:["landlord","leak","sink","rent"]},
+    {id:3,type:"task",title:"Renew G licence",moves:2,keys:["licence","license","renew","g licence","serviceontario"]},
+    {id:4,type:"appointment",title:"Evening shift",time:"6:00 PM",keys:["shift","work"]},
+    {id:5,type:"task",title:"Send Omar the reference form",keys:["omar","reference","form"]}
+  ],
+  moved:[], done:new Set(), timer:null,
+  ideas:[
+    {id:11,title:"Text back missed calls in Arabic for clients who prefer it",age:"Caught 2 days ago",verdict:null},
+    {id:12,title:"Batch all phone calls into Tuesday mornings",age:"Caught 6 days ago",verdict:null},
+    {id:13,title:"Learn the basics of Figma",age:"Caught 3 weeks ago",verdict:null}
+  ],
+  ideaOpen:null, ideaDraft:{choice:null,why:""},
+  captured:0, corrected:0,
+  history:[{w:"6 wk",p:33},{w:"5 wk",p:40},{w:"4 wk",p:50},{w:"3 wk",p:43},{w:"2 wk",p:57},{w:"Last",p:60}],
+  capText:"Dentist Thursday at 2pm. Need to renew my G licence before the 30th. Maybe text back missed calls in Arabic for clients who prefer it",
+  reading:null
+};
+
+const NOTES={
+  today:["Recall before reveal","An app that only reminds you keeps you dependent on the app. Asking you to recall your day first takes ten seconds, and over weeks it trains the memory the app is meant to protect. You can skip, but a skip is counted, so the review stays honest."],
+  catch:["Show the reading","When an agent sorts your note, you should see what it understood and the words it went on, and fix it with one tap. If you can't see how it read you, you can't trust it or get better at writing for it."],
+  ideas:["Ideas need a verdict","The agent never decides for you. Ideas wait until you try, park or drop them, and each choice asks for one line on why. That line is the friction, and it's what turns a pile of ideas into decisions."],
+  review:["A mirror, not a scoreboard","The weekly review describes patterns in plain words: what you remembered, what you keep pushing, what you decided. No streaks or badges. The point is to see yourself improving, not to chase a number."],
+  push:["The third push is a signal","Moving a task a third time usually means it's too big, not wanted, or being avoided. Catch stops and asks which one, instead of quietly moving it again. Each answer leads somewhere different."]
+};
+const note=k=>`<div class="note"><strong>Design note · ${esc(NOTES[k][0])}</strong>${esc(NOTES[k][1])}</div>`;
+
+const ICONS={
+  today:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>',
+  catch:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  ideas:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3Z"/></svg>',
+  review:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg>'
+};
+function renderTabs(){
+  const waiting=S.ideas.filter(i=>!i.verdict).length;
+  const t=(k,l)=>`<button role="tab" aria-selected="${S.tab===k}" data-tab="${k}">${k==="ideas"&&waiting?`<span class="badge" data-n="${waiting}">${ICONS[k]}</span>`:ICONS[k]}${l}</button>`;
+  $("#tabs").innerHTML=t("today","Today")+t("catch","Catch")+t("ideas","Ideas")+t("review","Review");
+}
+
+/* ---------- TODAY ---------- */
+const norm=s=>s.toLowerCase().replace(/[^a-z0-9 ]/g," ").replace(/\s+/g," ").trim();
+function matchRecall(){
+  const said=S.recall.map(norm).filter(Boolean);
+  return S.items.map(it=>({id:it.id,got:said.some(w=>it.keys.some(k=>w.includes(k)||(w.length>=4&&k.includes(w))))}));
+}
+function todayItems(){ return S.items.filter(i=>!S.moved.includes(i.id)); }
+function renderToday(){
+  let h=note("today");
+  if(S.gate==="ask"){
+    h+=`<div><h2>Before you look, what's on today?</h2></div>
+    <p class="sub">Type whatever comes to mind. Press Enter after each one.</p>
+    <div class="field"><input id="recallIn" placeholder="e.g. dentist" autocomplete="off" aria-label="Something on today"><button class="btn" id="addRecall">Add</button></div>
+    <div class="chips">${S.recall.map((r,i)=>`<span class="chip">${esc(r)}<button data-rm="${i}" aria-label="Remove ${esc(r)}">×</button></span>`).join("")}</div>
+    <button class="btn wide" id="reveal">${S.recall.length?"Show my day":"Show my day"}</button>
+    <button class="linkish" id="skip">Skip today (counted in your review)</button>`;
+  } else {
+    const r=S.result, n=S.items.length;
+    h+=S.skipped
+      ? `<div class="score"><b>Skipped</b><span>No problem. It shows up in your weekly review as a skip.</span></div>`
+      : `<div class="score"><b>${r.got}/${n}</b><span>${r.got===n?"You had all of it.":r.got===0?"Catch had all of it this time. Tomorrow's another try.":`You remembered ${r.got}. Catch had the other ${n-r.got}.`}</span></div>`;
+    const list=todayItems();
+    h+=`<p class="label">Your day</p><ul class="items">${list.map((it,i)=>itemLi(it,i)).join("")}</ul>`;
+    if(S.moved.length) h+=`<p class="moved">Moved to tomorrow: ${S.moved.map(id=>esc(S.items.find(x=>x.id===id).title)).join(", ")}</p>`;
+    h+=`<button class="linkish" id="again">Try the recall again</button>`;
+  }
+  return h;
+}
+function itemLi(it,i){
+  const got=!S.skipped&&S.result&&S.result.map.find(m=>m.id===it.id).got;
+  const done=S.done.has(it.id);
+  const meta=[];
+  if(it.time) meta.push(`<span>${esc(it.time)}</span>`);
+  meta.push(`<span>${it.type==="task"?"Task":"Appointment"}</span>`);
+  if(!S.skipped) meta.push(got?'<span class="tag got">You remembered</span>':'<span class="tag miss">Catch had this</span>');
+  if(it.moves) meta.push(`<span class="tag push">Pushed back ${it.moves}×</span>`);
+  if(it.step) meta.push(`<span class="tag step">First step of: ${esc(it.step)}</span>`);
+  if(S.timer&&S.timer.id===it.id) meta.push(`<span class="tag timer" id="timerTag">${clock(S.timer.left)} left</span>`);
+  const acts=it.type==="task"?(done?`<div class="actions"><button data-undo="${it.id}">Undo</button></div>`:`<div class="actions"><button class="done" data-done="${it.id}">Done</button><button data-later="${it.id}">Later</button></div>`):"";
+  return `<li class="item ${got?"got":""}" style="animation-delay:${i*70}ms;${done?"opacity:.55":""}"><span class="dot ${it.type}"></span><span class="t">${done?"<s>":""}${esc(it.title)}${done?"</s>":""}</span><span class="meta">${meta.join("")}</span>${acts}</li>`;
+}
+const clock=s=>`${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`;
+
+/* ---------- PUSHBACK SHEET ---------- */
+let sheet=null;
+function openPush(it){ sheet={id:it.id,choice:null,step:""}; drawSheet(); }
+function drawSheet(){
+  if(!sheet){ $("#layer").innerHTML=""; return; }
+  const it=S.items.find(x=>x.id===sheet.id);
+  const o=(k,b,s)=>`<button class="opt" data-opt="${k}" aria-pressed="${sheet.choice===k}"><b>${b}</b><span>${s}</span></button>`;
+  let extra="";
+  if(sheet.choice==="big") extra=`<label class="label" for="stepIn">What's the smallest first step?</label><input id="stepIn" class="card" style="padding:12px 14px" placeholder="e.g. Find my renewal letter" value="${esc(sheet.step)}"><button class="btn wide" id="doStep" ${sheet.step.trim().length<3?"disabled":""}>Put this step on today</button>`;
+  if(sheet.choice==="want") extra=`<button class="btn wide" id="doDrop">Drop it for good</button>`;
+  if(sheet.choice==="avoid") extra=`<button class="btn wide" id="doTimer">Start 10 minutes now</button>`;
+  $("#layer").innerHTML=`<div class="sheet-wrap" id="wrap"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetH">
+    ${note("push")}
+    <h2 id="sheetH">This would be the third push.</h2>
+    <p class="sub" style="margin:0">“${esc(it.title)}” keeps moving. What's really in the way?</p>
+    ${o("big","It's too big","Break off one small step you can do today.")}
+    ${o("want","I don't actually want to do it","Then it shouldn't keep coming back.")}
+    ${o("avoid","I keep avoiding it","Do ten minutes right now. Starting is the hard part.")}
+    ${extra}
+    <button class="linkish" id="closeSheet">Close. It stays on today.</button>
+  </div></div>`;
+  const si=$("#stepIn"); if(si){ si.focus(); si.setSelectionRange(si.value.length,si.value.length); }
+}
+
+/* ---------- CATCH ---------- */
+function readNote(text){
+  if(text.trim()===S.capText){
+    return [
+      {type:"appointment",title:"Dentist",when:"Thursday, 2:00 PM",cue:["Thursday at 2pm"]},
+      {type:"task",title:"Renew G licence",when:"Due the 30th",cue:["Need to","before the 30th"]},
+      {type:"idea",title:"Text back missed calls in Arabic for clients who prefer it",when:"Waits for your decision",cue:["Maybe"]}
+    ];
+  }
+  const parts=text.split(/[.\n;]+|\balso\b/i).map(s=>s.trim()).filter(s=>s.length>2);
+  return parts.slice(0,5).map(p=>{
+    const timeCue=p.match(/\b(\d{1,2}(:\d{2})?\s?(am|pm)|monday|tuesday|wednesday|thursday|friday|saturday|sunday|tomorrow|tonight)\b/i);
+    const ideaCue=p.match(/\b(maybe|what if|idea|could|might)\b/i);
+    const taskCue=p.match(/\b(need to|have to|must|remember to|don't forget)\b/i);
+    const type=ideaCue?"idea":(timeCue&&!taskCue)?"appointment":"task";
+    const cue=[ideaCue&&ideaCue[0],timeCue&&timeCue[0],taskCue&&taskCue[0]].filter(Boolean);
+    const title=p.replace(/^(maybe|need to|have to|remember to|don't forget to)\s+/i,"");
+    return {type,title:title.charAt(0).toUpperCase()+title.slice(1),when:type==="idea"?"Waits for your decision":timeCue?timeCue[0]:"No date given",cue};
+  });
+}
+function hl(text,cues){
+  let out=esc(text);
+  cues.forEach(c=>{ const e=esc(c); out=out.replace(new RegExp(e.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"i"),m=>`<mark>${m}</mark>`); });
+  return out;
+}
+const TYPES=["task","appointment","idea"], TNAME={task:"Task",appointment:"Appointment",idea:"Idea"};
+function renderCatch(){
+  let h=note("catch");
+  if(!S.reading){
+    h+=`<div><h2>What's on your mind?</h2></div>
+    <p class="sub">Type it the way you'd say it. Several things at once is fine.</p>
+    <textarea id="capIn" aria-label="Your note">${esc(S.capText)}</textarea>
+    <button class="btn wide" id="doCatch">Catch it</button>`;
+    if(S.captured) h+=`<p class="moved">${S.captured} caught this session${S.corrected?`, ${S.corrected} corrected by you`:""}.</p>`;
+  } else if(S.reading==="busy"){
+    h+=`<div><h2>Reading your note…</h2></div><p class="sub">Splitting it into separate things.</p>`;
+  } else {
+    h+=`<div><h2>Here's how I read it.</h2></div>
+    <p class="sub">Tap a label to correct it. Highlights show the words I went on.</p>
+    <div class="reading">${S.reading.map((r,i)=>`<div class="read" style="animation-delay:${i*90}ms">
+      <div class="row"><button class="typebtn ${r.type}" data-cycle="${i}" aria-label="${TNAME[r.type]}. Tap to change type">${TNAME[r.type]}</button>${r.fixed?'<span class="fixed">Corrected by you</span>':""}</div>
+      <div style="font-weight:700">${esc(r.title)}</div>
+      <div class="why">${esc(r.when)}${r.cue.length?` · from “${hl(r.cue.join("… "),r.cue)}”`:""}</div>
+    </div>`).join("")}</div>
+    <button class="btn wide" id="saveReading">Looks right, save ${S.reading.length===1?"it":"all "+S.reading.length}</button>
+    <button class="linkish" id="redo">Edit my note instead</button>`;
+  }
+  return h;
+}
+
+/* ---------- IDEAS ---------- */
+function renderIdeas(){
+  const waiting=S.ideas.filter(i=>!i.verdict), decided=S.ideas.filter(i=>i.verdict);
+  let h=note("ideas")+`<div><h2>Ideas waiting on you</h2></div><p class="sub">${waiting.length?`${waiting.length} waiting. Catch won't decide for you.`:"Nothing waiting. Every idea has a verdict."}</p>`;
+  h+=waiting.map(i=>{
+    const open=S.ideaOpen===i.id, d=S.ideaDraft;
+    const c=(k,l)=>`<button data-ch="${k}" aria-pressed="${open&&d.choice===k}">${l}</button>`;
+    return `<div class="idea"><div class="top"><span class="dot" style="background:var(--idea-dot)"></span><div style="flex:1;min-width:0"><div class="t">${esc(i.title)}</div><div class="age">${esc(i.age)}</div></div></div>
+    ${open?`<div class="seg">${c("try","Try it")}${c("park","Park")}${c("drop","Drop")}</div>
+      <label class="label" for="why-${i.id}">One line: why?</label>
+      <input id="why-${i.id}" class="card" style="padding:10px 12px" data-why placeholder="${d.choice==="drop"?"e.g. Clients haven't asked for it":"e.g. Three clients lost calls last month"}" value="${esc(d.why)}">
+      <button class="btn" data-decide="${i.id}" ${!d.choice||d.why.trim().length<8?"disabled":""}>Decide</button>`
+    :`<button class="btn ghost" data-openidea="${i.id}">Decide on this</button>`}</div>`;
+  }).join("");
+  if(decided.length) h+=`<p class="label">Decided</p>`+decided.map(i=>`<div class="idea"><div class="top"><span class="dot" style="background:var(--line)"></span><div style="flex:1;min-width:0"><div class="t">${esc(i.title)}</div><div class="verdict"><b>${{try:"Trying it this week",park:"Parked",drop:"Dropped"}[i.verdict.choice]}</b> · “${esc(i.verdict.why)}”</div></div></div></div>`).join("");
+  return h;
+}
+
+/* ---------- REVIEW ---------- */
+function renderReview(){
+  const n=S.items.length;
+  const thisWeek=S.gate==="done"&&!S.skipped?Math.round(S.result.got/n*100):null;
+  const data=[...S.history,{w:"Today",p:thisWeek}];
+  const W=340,H=170,L=34,R=12,T=14,B=26,iw=W-L-R,ih=H-T-B;
+  const x=i=>L+i*(iw/(data.length-1)), y=p=>T+ih-(p/100)*ih;
+  const pts=data.filter(d=>d.p!=null).map((d,i)=>[x(data.indexOf(d)),y(d.p)]);
+  const line=pts.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" ");
+  const area=line+` L${pts[pts.length-1][0].toFixed(1)} ${T+ih} L${pts[0][0].toFixed(1)} ${T+ih} Z`;
+  const grid=[0,50,100].map(v=>`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="var(--muted)">${v}%</text>`).join("");
+  const labels=data.map((d,i)=>`<text x="${x(i)}" y="${H-6}" text-anchor="middle" font-size="11" fill="var(--muted)">${d.w}</text>`).join("");
+  const last=pts[pts.length-1];
+  const decided=S.ideas.filter(i=>i.verdict).length;
+  const pushedItem=S.items.find(i=>i.id===3);
+  const missedTasks=S.result&&!S.skipped?S.result.map.filter(m=>!m.got).map(m=>S.items.find(i=>i.id===m.id)).filter(i=>i.type==="task").length:null;
+  const mirror=[];
+  if(thisWeek!=null) mirror.push(`You recalled ${thisWeek}% of today on your own, against 33% six weeks ago.`);
+  else if(S.skipped) mirror.push("You skipped today's recall. That's fine once; three skips in a week usually means the habit is slipping.");
+  else mirror.push("Do today's recall to add this week to the line.");
+  if(missedTasks) mirror.push(`Most of what you forgot today were tasks, not appointments. Things without a set time are the ones that slip.`);
+  if(!pushedItem) mirror.push("You dropped “Renew G licence” instead of pushing it a third time.");
+  else if(pushedItem.step) mirror.push(`“${esc(pushedItem.step)}” stopped being pushed once it had a first step.`);
+  else if(pushedItem.moves>=2) mirror.push(`“Renew G licence” has been pushed back ${pushedItem.moves} times. It's due on the 30th.`);
+  mirror.push(decided?`You decided on ${decided} idea${decided>1?"s":""}, with a reason for each.`:`3 ideas are still waiting. The oldest is 3 weeks old.`);
+  return note("review")+`<div><h2>Your week</h2></div>
+  <div class="stats"><div class="stat"><b>${23+S.captured}</b><span>caught</span></div><div class="stat"><b>${14+S.done.size}</b><span>done</span></div><div class="stat"><b>${decided}</b><span>ideas decided</span></div></div>
+  <div class="chart"><p class="label" style="margin-bottom:8px">Recalled on your own, before looking</p>
+  <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Share of the day recalled before looking, by week">${grid}
+  <path d="${area}" fill="var(--task)" fill-opacity=".1"/><path d="${line}" fill="none" stroke="var(--task)" stroke-width="2.5" stroke-linejoin="round"/>
+  ${pts.map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="3" fill="var(--surface)" stroke="var(--task)" stroke-width="2"/>`).join("")}
+  <circle cx="${last[0]}" cy="${last[1]}" r="5.5" fill="var(--task)"/>${labels}</svg></div>
+  <p class="label">What the week says</p><ul class="mirror">${mirror.map(m=>`<li>${m}</li>`).join("")}</ul>`;
+}
+
+/* ---------- render & events ---------- */
+function render(){
+  renderTabs();
+  const v={today:renderToday,catch:renderCatch,ideas:renderIdeas,review:renderReview}[S.tab]();
+  const sc=$("#screen"); sc.classList.toggle("anim",!!S.anim); S.anim=false; sc.innerHTML=v;
+}
+let tTimer=null;
+function toast(msg){
+  $("#layer").querySelector(".toast")?.remove();
+  const d=document.createElement("div"); d.className="toast"; d.setAttribute("role","status"); d.textContent=msg;
+  document.body.appendChild(d); clearTimeout(tTimer); tTimer=setTimeout(()=>d.remove(),2600);
+  document.querySelectorAll(".toast").forEach(t=>{ if(t!==d) t.remove(); });
+}
+function addRecall(){
+  const i=$("#recallIn"); if(!i) return; const v=i.value.trim(); if(!v) return;
+  v.split(",").map(s=>s.trim()).filter(Boolean).forEach(s=>S.recall.push(s));
+  render(); $("#recallIn").focus();
+}
+function reveal(){
+  const i=$("#recallIn"); if(i&&i.value.trim()) i.value.split(",").map(s=>s.trim()).filter(Boolean).forEach(s=>S.recall.push(s));
+  const map=matchRecall(); S.result={map,got:map.filter(m=>m.got).length}; S.skipped=false; S.gate="done"; S.anim=true; render();
+}
+function startTimer(id){
+  if(S.timer) clearInterval(S.timer.iv);
+  S.timer={id,left:600,iv:setInterval(()=>{
+    S.timer.left--; const t=$("#timerTag"); if(t) t.textContent=clock(S.timer.left)+" left";
+    if(S.timer.left<=0){ clearInterval(S.timer.iv); S.timer=null; toast("Ten minutes done. Keep going or call it a start."); render(); }
+  },1000)};
+}
+
+document.addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b) { if(e.target.id==="wrap"){ sheet=null; drawSheet(); } return; }
+  const d=b.dataset;
+  if(b.id==="notesToggle"){ const on=b.getAttribute("aria-pressed")!=="true"; b.setAttribute("aria-pressed",on); document.body.classList.toggle("nonotes",!on); return; }
+  if(d.tab){ S.tab=d.tab; render(); window.scrollTo({top:0,behavior:"smooth"}); return; }
+  if(b.id==="addRecall") return addRecall();
+  if(d.rm!=null){ S.recall.splice(+d.rm,1); render(); return; }
+  if(b.id==="reveal") return reveal();
+  if(b.id==="skip"){ S.skipped=true; S.result=null; S.gate="done"; render(); return; }
+  if(b.id==="again"){ S.gate="ask"; S.recall=[]; S.result=null; S.skipped=false; render(); return; }
+  if(d.done){ S.done.add(+d.done); if(S.timer&&S.timer.id===+d.done){clearInterval(S.timer.iv);S.timer=null;} toast("Done."); render(); return; }
+  if(d.undo){ S.done.delete(+d.undo); render(); return; }
+  if(d.later){
+    const it=S.items.find(x=>x.id===+d.later);
+    if((it.moves||0)>=2) return openPush(it);
+    it.moves=(it.moves||0)+1; S.moved.push(it.id); toast(`Moved to tomorrow. Pushed back ${it.moves}×.`); render(); return;
+  }
+  if(d.opt){ sheet.choice=d.opt; drawSheet(); return; }
+  if(b.id==="closeSheet"){ sheet=null; drawSheet(); return; }
+  if(b.id==="doStep"){ const it=S.items.find(x=>x.id===sheet.id); it.step=it.title; it.title=sheet.step.trim(); it.moves=0; sheet=null; drawSheet(); toast("First step is on today. The big task waits behind it."); render(); return; }
+  if(b.id==="doDrop"){ const id=sheet.id; S.items=S.items.filter(x=>x.id!==id); if(S.result) S.result.map=S.result.map.filter(m=>m.id!==id), S.result.got=S.result.map.filter(m=>m.got).length; sheet=null; drawSheet(); toast("Dropped. It won't come back."); render(); return; }
+  if(b.id==="doTimer"){ const id=sheet.id; sheet=null; drawSheet(); startTimer(id); toast("Timer started. Just start; you can stop at ten minutes."); render(); return; }
+  if(b.id==="doCatch"){ const t=$("#capIn").value; if(!t.trim()) return; S.capText=t; S.reading="busy"; render(); setTimeout(()=>{ S.reading=readNote(t); if(!S.reading.length) S.reading=[{type:"task",title:t.trim(),when:"No date given",cue:[]}]; S.anim=true; render(); },900); return; }
+  if(d.cycle!=null){ const r=S.reading[+d.cycle]; r.type=TYPES[(TYPES.indexOf(r.type)+1)%3]; r.fixed=true; r.when=r.type==="idea"?"Waits for your decision":r.when==="Waits for your decision"?"No date given":r.when; render(); return; }
+  if(b.id==="saveReading"){
+    const n=S.reading.length, fixed=S.reading.filter(r=>r.fixed).length;
+    S.reading.filter(r=>r.type==="idea").forEach(r=>S.ideas.unshift({id:Date.now()+Math.random(),title:r.title,age:"Caught just now",verdict:null}));
+    S.captured+=n; S.corrected+=fixed; S.reading=null; S.capText="";
+    toast(`Saved ${n}.${fixed?` ${fixed} corrected by you.`:""}`); render(); return;
+  }
+  if(b.id==="redo"){ S.reading=null; render(); return; }
+  if(d.openidea){ S.ideaOpen=+d.openidea||d.openidea; S.ideaDraft={choice:null,why:""}; render(); return; }
+  if(d.ch){ S.ideaDraft.choice=d.ch; render(); const w=document.querySelector("[data-why]"); if(w){w.focus();} return; }
+  if(d.decide){ const i=S.ideas.find(x=>String(x.id)===d.decide); i.verdict={choice:S.ideaDraft.choice,why:S.ideaDraft.why.trim()}; S.ideaOpen=null; toast({try:"Added a try-it task for this week.",park:"Parked. It'll come back in a month.",drop:"Dropped, with your reason saved."}[i.verdict.choice]); render(); return; }
+});
+document.addEventListener("keydown",e=>{
+  if(e.key==="Enter"&&e.target.id==="recallIn"){ e.preventDefault(); addRecall(); }
+  if(e.key==="Escape"&&sheet){ sheet=null; drawSheet(); }
+});
+document.addEventListener("input",e=>{
+  if(e.target.id==="stepIn"){ sheet.step=e.target.value; const b=$("#doStep"); if(b) b.disabled=sheet.step.trim().length<3; }
+  if(e.target.matches("[data-why]")){ S.ideaDraft.why=e.target.value; const b=document.querySelector("[data-decide]"); if(b) b.disabled=!S.ideaDraft.choice||S.ideaDraft.why.trim().length<8; }
+});
+render();
+})();
+</script>
+
+</body></html>
